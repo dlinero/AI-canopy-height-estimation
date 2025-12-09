@@ -43,9 +43,27 @@ Each tile is composed of 5 channels, all harmonized to a 10-meter spatial resolu
 
 ## Model training and evaluation
 
+The dataset was partitioned into training (70%), validation (15%), and testing (15%) subsets. I benchmarked five distinct deep learning architectures: a basic U-Net, three U-Net variations with different backbones (MobileNetV2, EfficientNet-B1, and ResNet18), and a Mix Vision Transformer (MiT-b0).
+
+All models were trained for 100 epochs using identical hyperparameters and regularization settings. To assess the impact of data processing strategies, each architecture was evaluated under four scenarios: (1) a baseline with no augmentation or transfer learning, (2) data augmentation only, (3) transfer learning (ImageNet weights) only, and (4) both augmentation and transfer learning. Performance across all experiments was measured using Mean Squared Error (MSE) and Root Mean Squared Error (RMSE).
+
 ## Results
+
+Transfer learning had a more consistent decrease in loss when I did not use data augmentation. On the other hand, augmentation increased loss during training but consistently decreased loss during validation and testing. The best performing model was the **U-Net with a MobileNetV2 backbone**, using pre-trained ImageNet weights and data augmentation (random flips and radar noise). This configuration achieved the lowest error for the 100th epoch with a **Test RMSE of 7.38 meters**.
+
+![Picture1](https://github.com/user-attachments/assets/f33025d9-6b88-49df-a05c-4a46a1bb3567)
 
 ## Reflection
 
+The final RMSE of 7.38 meters is a surprisingly positive result given the constraints of this pilot study. While the error margin is large enough to prevent this specific model from being used for precise analyses, it is not exaggerated. The fact that the model generalized well suggests that using SAR (Sentinel-1) and topographic data holds valuable predictive power for canopy structure. However, several critical limitations in the data and methodology likely capped the model's potential performance.
+
+The "Proxy" ground truth Problem was the most significant limitation, as I did not train or test the model on on-the-ground measurements or direct LiDAR point clouds. Instead, I used the global canopy height map by Lang et al. (2023) as my ground truth. Since the Lang map is itself a prediction generated based on GEDI and Sentinel-2 optical data, my project was essentially training a student model to mimic a teacher model, rather than learning from physical reality. Any errors or biases inherent in the Lang dataset were inevitably propagated into my results.
+
+Additionally, I worked with only 999 tiles, which resulted in a very small dataset problem, even though data augmentation helped mitigate it to some extent. Furthermore, the tile dimension of 64x64 pixels may have been too restrictive. Canopy height in tropical forests is often influenced by larger landscape features—such as position on a watershed or mountain range—that require a wider field of view to understand. By cropping the world into small squares, I may have removed the broader contextual clues the CNN needed to make better predictions.
+
+Finally, tree height is not just a function of terrain and roughness; it is biological. Factors such as soil composition, precipitation levels, and forest age are major drivers of vegetation growth, but none of these variables were included in the input channels.
+
+Despite these limitations, the models successfully learned to extract spatial patterns consistent with the Lang et al. predictions. The final error rate is comparable to other studies, such as the findings by [Tolan et al. (2024)](https://doi.org/10.1016/j.rse.2023.113888) for Brazil, suggesting that the use of SAR and topographic data remains a viable approach for large-scale estimation
+
 ---
-*Created by [Daniela Linero] for the AI for Earth Observation Final Project.*
+*Created by Daniela Linero for the AI for Earth Observation Final Project.*
